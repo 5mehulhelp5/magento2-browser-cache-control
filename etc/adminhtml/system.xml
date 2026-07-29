@@ -1,0 +1,44 @@
+<?xml version="1.0"?>
+<!--
+/**
+ * Copyright (c) 2026. Volodymyr Hryvinskyi. All rights reserved.
+ * Author: Volodymyr Hryvinskyi <volodymyr@hryvinskyi.com>
+ * GitHub: https://github.com/hryvinskyi
+ */
+-->
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Config:etc/system_file.xsd">
+    <system>
+        <tab id="hryvinskyi" translate="label" sortOrder="400">
+            <label>Hryvinskyi</label>
+        </tab>
+        <section id="hryvinskyi_browser_cache_control" translate="label" type="text" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="1">
+            <class>separator-top</class>
+            <label>Browser Cache Control</label>
+            <tab>hryvinskyi</tab>
+            <resource>Hryvinskyi_BrowserCacheControl::config</resource>
+            <group id="general" translate="label comment" type="text" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
+                <label>General</label>
+                <comment><![CDATA[Gives the visitor's browser a short <code>Cache-Control</code> lifetime on storefront pages that Magento itself declared full page cacheable, without shortening how long the shared cache keeps them. Intended for installations where the Varnish VCL cannot be edited, or where there is no Varnish at all.]]></comment>
+                <field id="enabled" translate="label" type="select" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Enabled</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
+                <field id="browser_ttl" translate="label comment" type="text" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Browser lifetime</label>
+                    <comment><![CDATA[Value in <strong>seconds</strong>; typical values are 60, 120 and 300. It is capped at Magento's own full page cache lifetime, so it never outlives what the shared cache stores. Behind Varnish the effective lifetime is this value minus the page's age in the Varnish cache — Varnish sends an <code>Age</code> header the origin cannot remove — so the benefit there is limited to recently cached pages. (Magento's own shipped VCL strips <code>Age</code> on deliver; a CDN or a customised VCL usually does not.) Magento's built-in full page cache sends no <code>Age</code>, so the browser gets the full value there.]]></comment>
+                    <validate>validate-digits validate-greater-than-zero</validate>
+                </field>
+                <field id="must_revalidate" translate="label comment" type="select" sortOrder="30" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Require revalidation</label>
+                    <comment><![CDATA[Adds <code>must-revalidate</code> so the browser re-checks with the server once the lifetime expires instead of serving a stale copy.]]></comment>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
+                <field id="excluded_url_patterns" translate="label comment" type="textarea" sortOrder="40" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Excluded URL patterns</label>
+                    <comment><![CDATA[One regular expression per line, matched against the request path. Responses whose path matches keep Magento's stock cache headers. A line that is not a valid expression is ignored.]]></comment>
+                </field>
+            </group>
+        </section>
+    </system>
+</config>

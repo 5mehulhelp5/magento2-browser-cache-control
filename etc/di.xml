@@ -1,0 +1,104 @@
+<?xml version="1.0"?>
+<!--
+/**
+ * Copyright (c) 2026. Volodymyr Hryvinskyi. All rights reserved.
+ * Author: Volodymyr Hryvinskyi <volodymyr@hryvinskyi.com>
+ * GitHub: https://github.com/hryvinskyi
+ */
+-->
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="urn:magento:framework:ObjectManager/etc/config.xsd">
+    <preference for="Hryvinskyi\BrowserCacheControl\Api\ConfigInterface"
+                type="Hryvinskyi\BrowserCacheControl\Model\Config"/>
+    <preference for="Hryvinskyi\BrowserCacheControl\Api\PageCacheEnvironmentInterface"
+                type="Hryvinskyi\BrowserCacheControl\Model\PageCacheEnvironment"/>
+    <preference for="Hryvinskyi\BrowserCacheControl\Api\PageCacheStrategyResolverInterface"
+                type="Hryvinskyi\BrowserCacheControl\Model\Strategy\PageCacheStrategyResolver"/>
+    <preference for="Hryvinskyi\BrowserCacheControl\Api\BrowserCacheTtlApplierInterface"
+                type="Hryvinskyi\BrowserCacheControl\Model\ApplyBrowserCacheTtl"/>
+    <preference for="Hryvinskyi\BrowserCacheControl\Api\PublicResponseStateInterface"
+                type="Hryvinskyi\BrowserCacheControl\Model\PublicResponseState"/>
+
+    <!-- Only safe, retrievable methods produce a response worth replaying from a browser cache. -->
+    <type name="Hryvinskyi\BrowserCacheControl\Model\Eligibility\RequestMethodRule">
+        <arguments>
+            <argument name="acceptedMethods" xsi:type="array">
+                <item name="get" xsi:type="string">GET</item>
+                <item name="head" xsi:type="string">HEAD</item>
+            </argument>
+        </arguments>
+    </type>
+
+    <!-- The same pair Magento's own full page cache is willing to store. -->
+    <type name="Hryvinskyi\BrowserCacheControl\Model\Eligibility\ResponseStatusRule">
+        <arguments>
+            <argument name="acceptedStatusCodes" xsi:type="array">
+                <item name="ok" xsi:type="number">200</item>
+                <item name="not_found" xsi:type="number">404</item>
+            </argument>
+        </arguments>
+    </type>
+
+    <!--
+        Endpoints that publish a public lifetime of their own without being page views. These are
+        correctness invariants rather than preferences, which is why they live here and not in the admin.
+        The ESI name uses the route id magento_pagecache, not the page_cache front name the URL shows.
+    -->
+    <type name="Hryvinskyi\BrowserCacheControl\Model\Eligibility\ExcludedActionRule">
+        <arguments>
+            <argument name="excludedActions" xsi:type="array">
+                <item name="page_cache_esi" xsi:type="string">magento_pagecache_block_esi</item>
+                <item name="swatches_media" xsi:type="string">swatches_ajax_media</item>
+            </argument>
+        </arguments>
+    </type>
+
+    <!--
+        One strategy per caching application, keyed by the identifier Magento stores in
+        system/full_page_cache/caching_application. The keys are bare numbers because that is the value being
+        matched: 1 is Magento's built-in full page cache and 2 is Varnish, the two constants BUILT_IN and
+        VARNISH on Magento\PageCache\Model\Config. Any other value has no strategy on purpose, and leaves
+        responses with Magento's own headers.
+    -->
+    <type name="Hryvinskyi\BrowserCacheControl\Model\Strategy\PageCacheStrategyResolver">
+        <arguments>
+            <argument name="strategies" xsi:type="array">
+                <!-- Built-in full page cache -->
+                <item name="1" xsi:type="object">
+                    Hryvinskyi\BrowserCacheControl\Model\Strategy\BuiltInStrategy
+                </item>
+                <!-- Varnish -->
+                <item name="2" xsi:type="object">
+                    Hryvinskyi\BrowserCacheControl\Model\Strategy\VarnishStrategy
+                </item>
+            </argument>
+        </arguments>
+    </type>
+
+    <!--
+        Every reason a response must keep Magento's stock headers. All of them have to agree, so the order
+        changes nothing about the verdict; it is set so that the checks answerable from the response itself
+        run before the one that has to read store configuration.
+    -->
+    <type name="Hryvinskyi\BrowserCacheControl\Model\ApplyBrowserCacheTtl">
+        <arguments>
+            <argument name="rules" xsi:type="array">
+                <item name="request_method" xsi:type="object" sortOrder="10">
+                    Hryvinskyi\BrowserCacheControl\Model\Eligibility\RequestMethodRule
+                </item>
+                <item name="response_status" xsi:type="object" sortOrder="20">
+                    Hryvinskyi\BrowserCacheControl\Model\Eligibility\ResponseStatusRule
+                </item>
+                <item name="response_is_cacheable" xsi:type="object" sortOrder="30">
+                    Hryvinskyi\BrowserCacheControl\Model\Eligibility\ResponseIsCacheableRule
+                </item>
+                <item name="excluded_action" xsi:type="object" sortOrder="40">
+                    Hryvinskyi\BrowserCacheControl\Model\Eligibility\ExcludedActionRule
+                </item>
+                <item name="excluded_url" xsi:type="object" sortOrder="50">
+                    Hryvinskyi\BrowserCacheControl\Model\Eligibility\ExcludedUrlRule
+                </item>
+            </argument>
+        </arguments>
+    </type>
+</config>

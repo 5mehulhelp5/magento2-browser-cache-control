@@ -1,0 +1,28 @@
+{
+    "name": "hryvinskyi/magento2-browser-cache-control",
+    "description": "Grants the end user's browser a short Cache-Control lifetime on full-page-cacheable storefront responses from inside Magento, for installations where the Varnish VCL cannot be edited or where there is no Varnish at all, without shortening what the shared cache stores.",
+    "type": "magento2-module",
+    "license": "proprietary",
+    "authors": [
+        {
+            "name": "Volodymyr Hryvinskyi",
+            "email": "volodymyr@hryvinskyi.com"
+        }
+    ],
+    "require": {
+        "php": "~8.1.0||~8.2.0||~8.3.0||~8.4.0||~8.5.0",
+        "magento/framework": "*",
+        "magento/module-backend": "*",
+        "magento/module-config": "*",
+        "magento/module-page-cache": "*",
+        "magento/module-store": "*"
+    },
+    "autoload": {
+        "files": [
+            "registration.php"
+        ],
+        "psr-4": {
+            "Hryvinskyi\\BrowserCacheControl\\": ""
+        }
+    }
+}
