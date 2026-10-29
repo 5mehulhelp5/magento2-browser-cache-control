@@ -15,7 +15,9 @@ use Hryvinskyi\BrowserCacheControl\Model\Http\CacheDirectives;
 use Hryvinskyi\BrowserCacheControl\Model\Http\CacheDirectivesWriter;
 use Hryvinskyi\BrowserCacheControl\Model\PublicResponseState;
 use Hryvinskyi\BrowserCacheControl\Model\ResponseSnapshot;
-use Hryvinskyi\BrowserCacheControl\Model\ResponseSnapshotFactory;
+use Hryvinskyi\BrowserCacheControl\Model\ResponseSnapshotReader;
+use Hryvinskyi\BrowserCacheControl\Test\Unit\Stub\GeneratedFactoriesTrait;
+use Magento\Framework\App\Http\Context as HttpContext;
 use Hryvinskyi\BrowserCacheControl\Model\WritePoint;
 use Hryvinskyi\BrowserCacheControl\Plugin\DeclarePublicResponse;
 use Magento\Framework\App\Request\Http as HttpRequest;
@@ -30,6 +32,8 @@ use PHPUnit\Framework\TestCase;
  */
 class DeclarePublicResponseTest extends TestCase
 {
+    use GeneratedFactoriesTrait;
+
     /**
      * @var BrowserCacheTtlApplierInterface&MockObject
      */
@@ -73,7 +77,7 @@ class DeclarePublicResponseTest extends TestCase
 
         $this->plugin = new DeclarePublicResponse(
             $this->publicResponseState,
-            $this->createSnapshotFactory(),
+            $this->createSnapshotReader(),
             $this->applierMock,
             new CacheDirectivesWriter()
         );
@@ -219,9 +223,9 @@ class DeclarePublicResponseTest extends TestCase
     /**
      * Build the real translation from Magento's objects into the facts a decision works from.
      *
-     * @return ResponseSnapshotFactory
+     * @return ResponseSnapshotReader
      */
-    private function createSnapshotFactory(): ResponseSnapshotFactory
+    private function createSnapshotReader(): ResponseSnapshotReader
     {
         $request = $this->createMock(HttpRequest::class);
         $request->method('getMethod')->willReturn('GET');
@@ -234,11 +238,13 @@ class DeclarePublicResponseTest extends TestCase
         $storeManager = $this->createMock(StoreManagerInterface::class);
         $storeManager->method('getStore')->willReturn($store);
 
-        return new ResponseSnapshotFactory(
+        return new ResponseSnapshotReader(
             $request,
             $this->publicResponseState,
             $this->createMock(PageCacheEnvironmentInterface::class),
-            $storeManager
+            $storeManager,
+            $this->createMock(HttpContext::class),
+            $this->snapshotFactoryStub()
         );
     }
 }

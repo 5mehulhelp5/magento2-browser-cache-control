@@ -86,7 +86,10 @@ Magento's no-cache set writes all three and any survivor would contradict the ot
   has no way to purge.
 - Magento's own stale-vary guard stays the last word — a page rendered for a context the visitor's browser
   does not know is never handed a lifetime.
-- Five independent eligibility rules, extensible from another module through `di.xml` without editing a line
+- Only the default variant of a page gets a lifetime. A page rendered for a visitor's own context — a signed-in
+  customer, a chosen currency — keeps Magento's headers, because a browser keys its cache on the URL alone and
+  would replay that copy after the customer signs out.
+- Six independent eligibility rules, extensible from another module through `di.xml` without editing a line
   of this one.
 
 ## Configuration
@@ -163,7 +166,7 @@ they come back, gains nothing at all.
 
 ```
 Plugin\DeclarePublicResponse   ─┐
-Plugin\BuiltInCacheStored      ─┼─► ResponseSnapshotFactory ─► ApplyBrowserCacheTtl ─► CacheDirectives (VO)
+Plugin\BuiltInCacheStored      ─┼─► ResponseSnapshotReader ──► ApplyBrowserCacheTtl ─► CacheDirectives (VO)
 Plugin\BuiltInCacheServed      ─┘        (the boundary)          (the decision)              │
                                                                        │                     ▼
                                     ConfigInterface ◄─────────────────┤          CacheDirectivesWriter
@@ -176,7 +179,7 @@ The decision and everything below it work on plain values and are unit-tested wi
 `ApplyBrowserCacheTtl` contains **no** test for the caching application or the write point anywhere — those
 are asked once, of the strategy. Keeping it that way is the property to protect in review.
 
-### The five eligibility rules
+### The six eligibility rules
 
 All must agree. Order only decides how quickly a rejection is reached.
 
@@ -185,6 +188,7 @@ All must agree. Order only decides how quickly a rejection is reached.
 | `RequestMethodRule` | the method is not `GET` or `HEAD` |
 | `ResponseStatusRule` | the status is not `200` or `404` — the pair `Kernel::process()` stores |
 | `ResponseIsCacheableRule` | the response is a `NotCacheableInterface`, or carries the `NotCacheable` metadata flag |
+| `DefaultContextRule` | the page is not the default variant: the visitor's `X-Magento-Vary` cookie, or else the HTTP context it is rendered for, sets it apart — the same order Magento's page cache identifier follows |
 | `ExcludedActionRule` | the full action name is `magento_pagecache_block_esi` or `swatches_ajax_media` |
 | `ExcludedUrlRule` | the request path matches a configured exclusion |
 
@@ -253,13 +257,14 @@ hit-for-pass, so Varnish would stop caching the page entirely.
 ```bash
 vendor/bin/phpunit -c dev/tests/unit/phpunit.xml.dist app/code/Hryvinskyi/BrowserCacheControl/Test/Unit
 vendor/bin/phpunit -c dev/tests/integration/phpunit.xml.dist app/code/Hryvinskyi/BrowserCacheControl/Test/Integration
-vendor/bin/phpstan analyse app/code/Hryvinskyi/BrowserCacheControl --level=6 \
+vendor/bin/phpstan analyse app/code/Hryvinskyi/BrowserCacheControl --level=10 \
     --autoload-file=dev/tests/integration/framework/autoload.php
 vendor/bin/php-cs-fixer fix --dry-run --diff app/code/Hryvinskyi/BrowserCacheControl
 ```
 
-188 unit tests cover the domain, the rules, both strategies, the decision matrix and all three plugins; 8
-integration tests cover the emitted headers under each caching application. The `--autoload-file` on the
+193 unit tests cover the domain, the rules, both strategies, the decision matrix and all three plugins; 9
+integration tests cover the emitted headers under each caching application. Snapshots and directives are created
+through the factories Magento generates for them; the unit tests stand those in with `Test\Unit\Stub\GeneratedFactoriesTrait`. The `--autoload-file` on the
 phpstan line is required for any Magento integration test: `Magento\TestFramework\` is not in composer
 autoload, and the integration framework self-registers at runtime.
 

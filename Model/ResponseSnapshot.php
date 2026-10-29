@@ -14,9 +14,10 @@ namespace Hryvinskyi\BrowserCacheControl\Model;
  *
  * Holding the facts rather than the Magento request and response objects is what keeps the decision itself
  * free of the framework: every rule and the use case above them can be exercised with plain PHP values. The
- * translation from Magento objects into this shape happens once, in an adapter, outside this class.
+ * translation from Magento objects into this shape happens once, in an adapter, outside this class. Instances come
+ * from the factory Magento generates for this class.
  */
-final class ResponseSnapshot
+class ResponseSnapshot
 {
     /**
      * @param string $httpMethod HTTP method of the request, for example GET
@@ -31,6 +32,9 @@ final class ResponseSnapshot
      *        is a genuine announced lifetime and means something different from not knowing, so the two are
      *        kept apart rather than collapsed
      * @param int|null $storeId Store the response is being rendered for, or null when unknown
+     * @param string|null $contextVary Which variant of the page this is, as Magento's page cache tells variants
+     *        apart: the vary string of a page that differs from the default one, such as a signed-in customer's,
+     *        or null for the default page
      */
     public function __construct(
         public readonly string $httpMethod,
@@ -40,7 +44,8 @@ final class ResponseSnapshot
         public readonly ?string $currentCacheControl,
         public readonly bool $markedNotCacheable,
         public readonly ?int $declaredSharedTtl,
-        public readonly ?int $storeId
+        public readonly ?int $storeId,
+        public readonly ?string $contextVary
     ) {
     }
 }

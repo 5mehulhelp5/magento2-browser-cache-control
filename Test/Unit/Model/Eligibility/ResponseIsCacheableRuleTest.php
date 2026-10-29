@@ -124,7 +124,8 @@ class ResponseIsCacheableRuleTest extends TestCase
             $cacheControl,
             $markedNotCacheable,
             86400,
-            1
+            1,
+            null
         );
     }
 }

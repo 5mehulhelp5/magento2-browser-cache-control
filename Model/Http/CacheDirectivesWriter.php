@@ -18,7 +18,7 @@ use Magento\Framework\App\Response\Http as HttpResponse;
  * read and tested as a question about values, and it means there is exactly one place to look when asking what
  * this module can possibly do to a response.
  */
-final class CacheDirectivesWriter
+class CacheDirectivesWriter
 {
     /**
      * Header carrying the directives themselves.

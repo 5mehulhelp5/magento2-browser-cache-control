@@ -22,7 +22,7 @@ use Magento\PageCache\Model\Config as PageCacheConfig;
  * which caching application is selected, while the lifetime getter is annotated as returning a number but
  * hands back whatever configuration held -- a string, or nothing. Both are corrected here, once.
  */
-final class PageCacheEnvironment implements PageCacheEnvironmentInterface
+class PageCacheEnvironment implements PageCacheEnvironmentInterface
 {
     /**
      * @param PageCacheConfig $pageCacheConfig Magento's own full page cache settings

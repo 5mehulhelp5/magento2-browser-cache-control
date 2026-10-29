@@ -123,7 +123,8 @@ class ResponseStatusRuleTest extends TestCase
             null,
             false,
             86400,
-            1
+            1,
+            null
         );
     }
 }

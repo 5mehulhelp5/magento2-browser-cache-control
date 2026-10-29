@@ -20,6 +20,7 @@ use Hryvinskyi\BrowserCacheControl\Model\Strategy\VarnishStrategy;
 use Hryvinskyi\BrowserCacheControl\Model\WritePoint;
 use Magento\PageCache\Model\Config as PageCacheConfig;
 use PHPUnit\Framework\MockObject\MockObject;
+use Hryvinskyi\BrowserCacheControl\Test\Unit\Stub\GeneratedFactoriesTrait;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -27,6 +28,8 @@ use PHPUnit\Framework\TestCase;
  */
 class ApplyBrowserCacheTtlTest extends TestCase
 {
+    use GeneratedFactoriesTrait;
+
     /**
      * Store the snapshots in this test belong to. Every configuration reading must be made against it.
      */
@@ -85,6 +88,7 @@ class ApplyBrowserCacheTtlTest extends TestCase
         $useCase = new ApplyBrowserCacheTtl(
             $this->configMock,
             $this->strategyResolverMock,
+            $this->directivesFactoryStub(),
             $this->createRules($ruleOutcomes)
         );
 
@@ -307,7 +311,7 @@ class ApplyBrowserCacheTtlTest extends TestCase
         $this->configMock->method('isMustRevalidate')->willReturn(true);
         $this->strategyResolverMock->method('resolve')->willReturn(new VarnishStrategy());
 
-        $useCase = new ApplyBrowserCacheTtl($this->configMock, $this->strategyResolverMock, []);
+        $useCase = new ApplyBrowserCacheTtl($this->configMock, $this->strategyResolverMock, $this->directivesFactoryStub(), []);
 
         self::assertNull(
             $useCase->resolve(
@@ -344,6 +348,7 @@ class ApplyBrowserCacheTtlTest extends TestCase
         $useCase = new ApplyBrowserCacheTtl(
             $this->configMock,
             $this->strategyResolverMock,
+            $this->directivesFactoryStub(),
             [$objecting, $neverAsked]
         );
 
@@ -366,7 +371,7 @@ class ApplyBrowserCacheTtlTest extends TestCase
         $rule = $this->createMock(EligibilityRuleInterface::class);
         $rule->expects(self::never())->method('isEligible');
 
-        $useCase = new ApplyBrowserCacheTtl($this->configMock, $this->strategyResolverMock, [$rule]);
+        $useCase = new ApplyBrowserCacheTtl($this->configMock, $this->strategyResolverMock, $this->directivesFactoryStub(), [$rule]);
 
         self::assertNull(
             $useCase->resolve($this->snapshotWithDeclaredSharedTtl(86400), WritePoint::BuiltInDelivery)
@@ -397,6 +402,7 @@ class ApplyBrowserCacheTtlTest extends TestCase
         $useCase = new ApplyBrowserCacheTtl(
             $this->configMock,
             $this->strategyResolverMock,
+            $this->directivesFactoryStub(),
             [$first, $second]
         );
 
@@ -421,7 +427,7 @@ class ApplyBrowserCacheTtlTest extends TestCase
 
         $this->strategyResolverMock->method('resolve')->willReturn($contradictory);
 
-        $useCase = new ApplyBrowserCacheTtl($this->configMock, $this->strategyResolverMock, []);
+        $useCase = new ApplyBrowserCacheTtl($this->configMock, $this->strategyResolverMock, $this->directivesFactoryStub(), []);
 
         self::assertNull(
             $useCase->resolve($this->snapshotWithDeclaredSharedTtl(86400), WritePoint::BuiltInDelivery)
@@ -445,7 +451,7 @@ class ApplyBrowserCacheTtlTest extends TestCase
 
         $this->strategyResolverMock->method('resolve')->willReturn($contradictory);
 
-        $useCase = new ApplyBrowserCacheTtl($this->configMock, $this->strategyResolverMock, []);
+        $useCase = new ApplyBrowserCacheTtl($this->configMock, $this->strategyResolverMock, $this->directivesFactoryStub(), []);
 
         self::assertNull(
             $useCase->resolve($this->snapshotWithDeclaredSharedTtl(null), WritePoint::SharedCacheDeclaration)
@@ -502,7 +508,8 @@ class ApplyBrowserCacheTtlTest extends TestCase
             'public, max-age=86400, s-maxage=86400',
             false,
             $declaredSharedTtl,
-            self::STORE_ID
+            self::STORE_ID,
+            null
         );
     }
 }

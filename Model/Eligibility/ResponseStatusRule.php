@@ -20,7 +20,7 @@ use Hryvinskyi\BrowserCacheControl\Model\ResponseSnapshot;
  * Granting a browser lifetime to a status Magento would not store would let a browser hold on to something
  * the origin never considered a cacheable page.
  */
-final class ResponseStatusRule implements EligibilityRuleInterface
+class ResponseStatusRule implements EligibilityRuleInterface
 {
     /**
      * Accepted status codes, cast once on construction.

@@ -57,7 +57,7 @@ class PageCacheStrategyResolverTest extends TestCase
      * being looked up is the number Magento stores. That the two meet at all is the point of the case.
      *
      * @param int $cachingApplication
-     * @param string $expectedStrategy
+     * @param class-string<object> $expectedStrategy
      * @return void
      * @dataProvider knownCachingApplicationDataProvider
      */
@@ -77,7 +77,7 @@ class PageCacheStrategyResolverTest extends TestCase
     /**
      * Caching applications declared in configuration, and the strategy each must produce.
      *
-     * @return array<string, array{0: int, 1: string}>
+     * @return array<string, array{0: int, 1: class-string<object>}>
      */
     public static function knownCachingApplicationDataProvider(): array
     {
@@ -196,6 +196,9 @@ class PageCacheStrategyResolverTest extends TestCase
     /**
      * Build the subject over the pool the module declares in configuration.
      *
+     * The keys are the literal text `di.xml` declares, not Magento's constants, so a case resolving Magento's
+     * constants against them also proves the two still name the same caching applications.
+     *
      * @return PageCacheStrategyResolver
      */
     private function createResolver(): PageCacheStrategyResolver
@@ -204,8 +207,8 @@ class PageCacheStrategyResolverTest extends TestCase
             $this->environmentMock,
             $this->loggerMock,
             [
-                (string)PageCacheConfig::BUILT_IN => $this->builtInStrategy,
-                (string)PageCacheConfig::VARNISH => $this->varnishStrategy,
+                '1' => $this->builtInStrategy,
+                '2' => $this->varnishStrategy,
             ]
         );
     }

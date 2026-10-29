@@ -12,7 +12,7 @@ namespace Hryvinskyi\BrowserCacheControl\Plugin;
 use Hryvinskyi\BrowserCacheControl\Api\BrowserCacheTtlApplierInterface;
 use Hryvinskyi\BrowserCacheControl\Api\PublicResponseStateInterface;
 use Hryvinskyi\BrowserCacheControl\Model\Http\CacheDirectivesWriter;
-use Hryvinskyi\BrowserCacheControl\Model\ResponseSnapshotFactory;
+use Hryvinskyi\BrowserCacheControl\Model\ResponseSnapshotReader;
 use Hryvinskyi\BrowserCacheControl\Model\WritePoint;
 use Magento\Framework\App\PageCache\Kernel;
 use Magento\Framework\App\Response\Http as HttpResponse;
@@ -36,17 +36,17 @@ use Magento\Framework\App\Response\Http as HttpResponse;
  * This runs before the response is sent, leaving Magento's own check that the visitor's cached context still
  * matches the rendered page as the last word on the headers.
  */
-final class BuiltInCacheStored
+class BuiltInCacheStored
 {
     /**
      * @param PublicResponseStateInterface $publicResponseState Record of the declaration made earlier
-     * @param ResponseSnapshotFactory $snapshotFactory Source of the facts the decision works from
+     * @param ResponseSnapshotReader $snapshotReader Source of the facts the decision works from
      * @param BrowserCacheTtlApplierInterface $applier Decision about what the browser may be told
      * @param CacheDirectivesWriter $writer Publisher of a decided answer
      */
     public function __construct(
         private readonly PublicResponseStateInterface $publicResponseState,
-        private readonly ResponseSnapshotFactory $snapshotFactory,
+        private readonly ResponseSnapshotReader $snapshotReader,
         private readonly BrowserCacheTtlApplierInterface $applier,
         private readonly CacheDirectivesWriter $writer
     ) {
@@ -71,7 +71,7 @@ final class BuiltInCacheStored
         }
 
         $directives = $this->applier->resolve(
-            $this->snapshotFactory->create($response),
+            $this->snapshotReader->read($response),
             WritePoint::BuiltInDelivery
         );
 

@@ -33,7 +33,7 @@ use Hryvinskyi\BrowserCacheControl\Model\ResponseSnapshot;
  *
  * The comparison ignores case, and an absent header is not an objection.
  */
-final class ResponseIsCacheableRule implements EligibilityRuleInterface
+class ResponseIsCacheableRule implements EligibilityRuleInterface
 {
     /**
      * Visibility directive that means the response belongs to one visitor only.

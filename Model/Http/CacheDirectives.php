@@ -25,7 +25,7 @@ use InvalidArgumentException;
  * object exists to express. It is not a back/forward-cache switch under another name; it is the same
  * directive, and adding it back would switch the feature off.
  */
-final class CacheDirectives
+class CacheDirectives
 {
     /**
      * @param bool $public Whether shared caches may store the response, as opposed to the browser only

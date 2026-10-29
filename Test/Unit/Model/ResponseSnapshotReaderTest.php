@@ -11,7 +11,9 @@ namespace Hryvinskyi\BrowserCacheControl\Test\Unit\Model;
 
 use Hryvinskyi\BrowserCacheControl\Api\PageCacheEnvironmentInterface;
 use Hryvinskyi\BrowserCacheControl\Model\PublicResponseState;
-use Hryvinskyi\BrowserCacheControl\Model\ResponseSnapshotFactory;
+use Hryvinskyi\BrowserCacheControl\Model\ResponseSnapshotReader;
+use Hryvinskyi\BrowserCacheControl\Test\Unit\Stub\GeneratedFactoriesTrait;
+use Magento\Framework\App\Http\Context as HttpContext;
 use Laminas\Http\Header\HeaderInterface;
 use Magento\Framework\App\Request\Http as HttpRequest;
 use Magento\Framework\App\Response\File as FileResponse;
@@ -25,8 +27,10 @@ use PHPUnit\Framework\TestCase;
 /**
  * Unit tests for the translation from Magento's request and response objects into the facts a decision needs.
  */
-class ResponseSnapshotFactoryTest extends TestCase
+class ResponseSnapshotReaderTest extends TestCase
 {
+    use GeneratedFactoriesTrait;
+
     /**
      * @var HttpRequest&MockObject
      */
@@ -42,6 +46,11 @@ class ResponseSnapshotFactoryTest extends TestCase
      */
     private $storeManagerMock;
 
+    /**
+     * @var HttpContext&MockObject
+     */
+    private $httpContextMock;
+
     private PublicResponseState $publicResponseState;
 
     /**
@@ -54,6 +63,7 @@ class ResponseSnapshotFactoryTest extends TestCase
         $this->requestMock = $this->createMock(HttpRequest::class);
         $this->environmentMock = $this->createMock(PageCacheEnvironmentInterface::class);
         $this->storeManagerMock = $this->createMock(StoreManagerInterface::class);
+        $this->httpContextMock = $this->createMock(HttpContext::class);
         $this->publicResponseState = new PublicResponseState();
 
         $this->requestMock->method('getMethod')->willReturn('GET');
@@ -71,7 +81,7 @@ class ResponseSnapshotFactoryTest extends TestCase
     {
         $this->publicResponseState->declarePublic(86400);
 
-        $snapshot = $this->createFactory()->create(
+        $snapshot = $this->createReader()->read(
             $this->createResponse(200, 'public, max-age=86400, s-maxage=86400')
         );
 
@@ -101,14 +111,16 @@ class ResponseSnapshotFactoryTest extends TestCase
         $request->method('getFullActionName')->willReturn('catalog_category_view');
         $request->method('getPathInfo')->willReturn($pathInfo);
 
-        $factory = new ResponseSnapshotFactory(
+        $reader = new ResponseSnapshotReader(
             $request,
             $this->publicResponseState,
             $this->environmentMock,
-            $this->storeManagerMock
+            $this->storeManagerMock,
+            $this->httpContextMock,
+            $this->snapshotFactoryStub()
         );
 
-        self::assertSame($expected, $factory->create($this->createResponse(200, null))->requestPath);
+        self::assertSame($expected, $reader->read($this->createResponse(200, null))->requestPath);
     }
 
     /**
@@ -139,14 +151,16 @@ class ResponseSnapshotFactoryTest extends TestCase
         $request->method('getPathInfo')->willReturn('/women/tops.html');
         $request->method('getFullActionName')->willReturn('__');
 
-        $factory = new ResponseSnapshotFactory(
+        $reader = new ResponseSnapshotReader(
             $request,
             $this->publicResponseState,
             $this->environmentMock,
-            $this->storeManagerMock
+            $this->storeManagerMock,
+            $this->httpContextMock,
+            $this->snapshotFactoryStub()
         );
 
-        self::assertSame('__', $factory->create($this->createResponse(200, null))->fullActionName);
+        self::assertSame('__', $reader->read($this->createResponse(200, null))->fullActionName);
     }
 
     /**
@@ -157,7 +171,7 @@ class ResponseSnapshotFactoryTest extends TestCase
      */
     public function testReportsNoCacheControlWhenTheResponseCarriesNone(): void
     {
-        $snapshot = $this->createFactory()->create($this->createResponse(200, null));
+        $snapshot = $this->createReader()->read($this->createResponse(200, null));
 
         self::assertNull($snapshot->currentCacheControl);
     }
@@ -175,7 +189,7 @@ class ResponseSnapshotFactoryTest extends TestCase
         $response->method('getHeader')->willReturn(false);
         $response->method('getMetadata')->willReturn(null);
 
-        self::assertTrue($this->createFactory()->create($response)->markedNotCacheable);
+        self::assertTrue($this->createReader()->read($response)->markedNotCacheable);
     }
 
     /**
@@ -189,7 +203,7 @@ class ResponseSnapshotFactoryTest extends TestCase
         $response = $this->createResponse(200, null);
         $response->method('getMetadata')->with('NotCacheable')->willReturn(true);
 
-        self::assertTrue($this->createFactory()->create($response)->markedNotCacheable);
+        self::assertTrue($this->createReader()->read($response)->markedNotCacheable);
     }
 
     /**
@@ -200,7 +214,7 @@ class ResponseSnapshotFactoryTest extends TestCase
      */
     public function testTreatsAnOrdinaryResponseAsCacheable(): void
     {
-        $snapshot = $this->createFactory()->create($this->createResponse(200, null));
+        $snapshot = $this->createReader()->read($this->createResponse(200, null));
 
         self::assertFalse($snapshot->markedNotCacheable);
     }
@@ -217,7 +231,7 @@ class ResponseSnapshotFactoryTest extends TestCase
         $this->publicResponseState->declarePublic(0);
         $this->environmentMock->expects(self::never())->method('getSharedTtl');
 
-        $snapshot = $this->createFactory()->create($this->createResponse(200, null));
+        $snapshot = $this->createReader()->read($this->createResponse(200, null));
 
         self::assertSame(0, $snapshot->declaredSharedTtl);
     }
@@ -233,7 +247,7 @@ class ResponseSnapshotFactoryTest extends TestCase
         $this->publicResponseState->declarePublic(null);
         $this->environmentMock->expects(self::never())->method('getSharedTtl');
 
-        $snapshot = $this->createFactory()->create($this->createResponse(200, null));
+        $snapshot = $this->createReader()->read($this->createResponse(200, null));
 
         self::assertNull($snapshot->declaredSharedTtl);
     }
@@ -247,7 +261,7 @@ class ResponseSnapshotFactoryTest extends TestCase
     {
         $this->environmentMock->method('getSharedTtl')->willReturn(86400);
 
-        $snapshot = $this->createFactory()->create($this->createResponse(200, null));
+        $snapshot = $this->createReader()->read($this->createResponse(200, null));
 
         self::assertSame(86400, $snapshot->declaredSharedTtl);
     }
@@ -261,7 +275,7 @@ class ResponseSnapshotFactoryTest extends TestCase
     {
         $this->environmentMock->method('getSharedTtl')->willReturn(null);
 
-        $snapshot = $this->createFactory()->create($this->createResponse(200, null));
+        $snapshot = $this->createReader()->read($this->createResponse(200, null));
 
         self::assertNull($snapshot->declaredSharedTtl);
     }
@@ -277,28 +291,88 @@ class ResponseSnapshotFactoryTest extends TestCase
         $storeManager = $this->createMock(StoreManagerInterface::class);
         $storeManager->method('getStore')->willThrowException(new NoSuchEntityException());
 
-        $factory = new ResponseSnapshotFactory(
+        $reader = new ResponseSnapshotReader(
             $this->requestMock,
             $this->publicResponseState,
             $this->environmentMock,
-            $storeManager
+            $storeManager,
+            $this->httpContextMock,
+            $this->snapshotFactoryStub()
         );
 
-        self::assertNull($factory->create($this->createResponse(200, null))->storeId);
+        self::assertNull($reader->read($this->createResponse(200, null))->storeId);
+    }
+
+    /**
+     * A visitor's vary cookie names the variant the cache in front of Magento serves, so it is taken first, as
+     * Magento's own page cache identifier does.
+     *
+     * @return void
+     */
+    public function testTakesTheVariantFromTheVisitorsVaryCookieFirst(): void
+    {
+        $this->requestMock->method('get')->with('X-Magento-Vary')->willReturn('cookie-vary');
+        $this->httpContextMock->expects(self::never())->method('getVaryString');
+
+        self::assertSame('cookie-vary', $this->createReader()->read($this->createResponse(200, null))->contextVary);
+    }
+
+    /**
+     * Without a cookie, the context the page is being rendered for decides, as it does for a visitor who has just
+     * signed in and does not hold the cookie yet.
+     *
+     * @param string|null $cookie Value of the vary cookie the request carries
+     * @return void
+     * @dataProvider missingCookieDataProvider
+     */
+    public function testTakesTheVariantFromTheRenderingContextWithoutACookie(?string $cookie): void
+    {
+        $this->requestMock->method('get')->willReturn($cookie);
+        $this->httpContextMock->method('getVaryString')->willReturn('context-vary');
+
+        self::assertSame('context-vary', $this->createReader()->read($this->createResponse(200, null))->contextVary);
+    }
+
+    /**
+     * Ways a request can carry no vary cookie.
+     *
+     * @return array<string, array{0: string|null}>
+     */
+    public static function missingCookieDataProvider(): array
+    {
+        return [
+            'no cookie' => [null],
+            'empty cookie' => [''],
+        ];
+    }
+
+    /**
+     * Neither a cookie nor a context of its own: the default page every visitor without a context receives.
+     *
+     * @return void
+     */
+    public function testReportsTheDefaultVariantWhenNothingSetsTheVisitorApart(): void
+    {
+        $this->requestMock->method('get')->willReturn(null);
+        $this->httpContextMock->method('getVaryString')->willReturn(null);
+
+        self::assertNull($this->createReader()->read($this->createResponse(200, null))->contextVary);
     }
 
     /**
      * Build the subject over the shared collaborators.
      *
-     * @return ResponseSnapshotFactory
+     * @return ResponseSnapshotReader
      */
-    private function createFactory(): ResponseSnapshotFactory
+    private function createReader(): ResponseSnapshotReader
     {
-        return new ResponseSnapshotFactory(
+        return new ResponseSnapshotReader(
             $this->requestMock,
             $this->publicResponseState,
             $this->environmentMock,
-            $this->storeManagerMock
+            $this->storeManagerMock,
+            $this->httpContextMock,
+            $this->snapshotFactoryStub()
         );
     }
 

@@ -159,6 +159,6 @@ class ExcludedUrlRuleTest extends TestCase
      */
     private function snapshotForPath(string $requestPath, ?int $storeId = 1): ResponseSnapshot
     {
-        return new ResponseSnapshot('GET', 200, $requestPath, 'catalog_category_view', null, false, 86400, $storeId);
+        return new ResponseSnapshot('GET', 200, $requestPath, 'catalog_category_view', null, false, 86400, $storeId, null);
     }
 }

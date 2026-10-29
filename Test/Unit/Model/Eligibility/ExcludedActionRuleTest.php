@@ -121,6 +121,6 @@ class ExcludedActionRuleTest extends TestCase
      */
     private function snapshotForAction(string $fullActionName): ResponseSnapshot
     {
-        return new ResponseSnapshot('GET', 200, '/women/tops.html', $fullActionName, null, false, 86400, 1);
+        return new ResponseSnapshot('GET', 200, '/women/tops.html', $fullActionName, null, false, 86400, 1, null);
     }
 }

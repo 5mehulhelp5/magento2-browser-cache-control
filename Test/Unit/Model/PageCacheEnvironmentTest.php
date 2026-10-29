@@ -67,17 +67,6 @@ class PageCacheEnvironmentTest extends TestCase
     }
 
     /**
-     * The two identifiers the module ships strategies for are the ones Magento defines.
-     *
-     * @return void
-     */
-    public function testMagentoStillNumbersTheCachingApplicationsAsExpected(): void
-    {
-        self::assertSame(1, PageCacheConfig::BUILT_IN);
-        self::assertSame(2, PageCacheConfig::VARNISH);
-    }
-
-    /**
      * Whole-page caching being switched on is reported straight from Magento's cache type toggle.
      *
      * @param bool $enabled

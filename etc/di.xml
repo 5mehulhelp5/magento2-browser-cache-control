@@ -92,6 +92,9 @@
                 <item name="response_is_cacheable" xsi:type="object" sortOrder="30">
                     Hryvinskyi\BrowserCacheControl\Model\Eligibility\ResponseIsCacheableRule
                 </item>
+                <item name="default_context" xsi:type="object" sortOrder="35">
+                    Hryvinskyi\BrowserCacheControl\Model\Eligibility\DefaultContextRule
+                </item>
                 <item name="excluded_action" xsi:type="object" sortOrder="40">
                     Hryvinskyi\BrowserCacheControl\Model\Eligibility\ExcludedActionRule
                 </item>

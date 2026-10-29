@@ -32,7 +32,7 @@ use Hryvinskyi\BrowserCacheControl\Model\ResponseSnapshot;
  * Magento_PageCache for the storefront is magento_pagecache. Anyone tempted to "correct" this string should
  * read that route declaration first.
  */
-final class ExcludedActionRule implements EligibilityRuleInterface
+class ExcludedActionRule implements EligibilityRuleInterface
 {
     /**
      * Full action names that must never receive a browser lifetime.

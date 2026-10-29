@@ -24,7 +24,7 @@ class Config implements ConfigInterface
      * The getter runs on every cacheable page render, so the textarea is split and probed once per store
      * rather than once per call.
      *
-     * @var array<string, string[]>
+     * @var array<int|string, list<string>>
      */
     private array $excludedUrlPatterns = [];
 
@@ -86,7 +86,7 @@ class Config implements ConfigInterface
      * Blank lines are dropped, surrounding whitespace is stripped, and the configured order is preserved.
      *
      * @param int|null $storeId Store to resolve against, or null for the current scope
-     * @return string[] Patterns that compile, in the order they were configured
+     * @return list<string> Patterns that compile, in the order they were configured
      */
     private function readExcludedUrlPatterns(?int $storeId): array
     {

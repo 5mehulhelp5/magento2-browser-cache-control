@@ -39,7 +39,7 @@ use Hryvinskyi\BrowserCacheControl\Model\WritePoint;
  * literal word public ahead of a shared lifetime, so a private response cannot be stored again however the
  * rewrite is reached.
  */
-final class BuiltInStrategy implements PageCacheStrategyInterface
+class BuiltInStrategy implements PageCacheStrategyInterface
 {
     /**
      * @inheritDoc

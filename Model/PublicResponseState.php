@@ -29,7 +29,7 @@ use Magento\Framework\ObjectManager\ResetAfterRequestInterface;
  * the next request would tell it a page was publicly cacheable when nothing had said so. Magento offers a hook
  * for exactly this, and the framework's own request context and HTTP response both use it for the same reason.
  */
-final class PublicResponseState implements PublicResponseStateInterface, ResetAfterRequestInterface
+class PublicResponseState implements PublicResponseStateInterface, ResetAfterRequestInterface
 {
     /**
      * Whether Magento has declared the response publicly cacheable during this request.

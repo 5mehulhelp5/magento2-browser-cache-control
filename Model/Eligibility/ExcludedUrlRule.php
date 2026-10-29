@@ -25,7 +25,7 @@ use Hryvinskyi\BrowserCacheControl\Model\ResponseSnapshot;
  * Matching is case insensitive, and a pattern that fails to compile is treated as not matching. That makes
  * the rule fail open on purpose: a typo in one admin line must cost that one exclusion, not the storefront.
  */
-final class ExcludedUrlRule implements EligibilityRuleInterface
+class ExcludedUrlRule implements EligibilityRuleInterface
 {
     /**
      * Flag applied to every configured pattern so that path casing does not defeat an exclusion.

@@ -21,7 +21,7 @@ use Psr\Log\LoggerInterface;
  * The pool is a lookup rather than a chain of comparisons, so support for another caching application is
  * added by declaring one more entry and one more class -- this file does not grow.
  */
-final class PageCacheStrategyResolver implements PageCacheStrategyResolverInterface, ResetAfterRequestInterface
+class PageCacheStrategyResolver implements PageCacheStrategyResolverInterface, ResetAfterRequestInterface
 {
     /**
      * Strategies by the caching application they belong to.

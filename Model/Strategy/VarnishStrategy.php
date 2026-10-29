@@ -27,7 +27,7 @@ use Hryvinskyi\BrowserCacheControl\Model\WritePoint;
  * The response stays public for the same reason: Varnish refuses to store a response marked private, so
  * marking it private would not restrict the page to one visitor, it would stop the page being cached at all.
  */
-final class VarnishStrategy implements PageCacheStrategyInterface
+class VarnishStrategy implements PageCacheStrategyInterface
 {
     /**
      * @inheritDoc

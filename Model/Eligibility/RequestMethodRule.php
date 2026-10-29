@@ -19,7 +19,7 @@ use Hryvinskyi\BrowserCacheControl\Model\ResponseSnapshot;
  * must reach the origin every time. The accepted set is a constructor argument with its defaults declared
  * in configuration, so an installation with an unusual method can widen it without this class changing.
  */
-final class RequestMethodRule implements EligibilityRuleInterface
+class RequestMethodRule implements EligibilityRuleInterface
 {
     /**
      * Accepted methods, upper-cased once so that every comparison afterwards is a plain equality test.

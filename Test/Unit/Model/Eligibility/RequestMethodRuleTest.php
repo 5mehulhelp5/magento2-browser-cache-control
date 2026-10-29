@@ -114,6 +114,6 @@ class RequestMethodRuleTest extends TestCase
      */
     private function snapshotForMethod(string $method): ResponseSnapshot
     {
-        return new ResponseSnapshot($method, 200, '/women/tops.html', 'catalog_category_view', null, false, 86400, 1);
+        return new ResponseSnapshot($method, 200, '/women/tops.html', 'catalog_category_view', null, false, 86400, 1, null);
     }
 }

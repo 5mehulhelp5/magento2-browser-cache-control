@@ -375,6 +375,39 @@ class BrowserCacheHeadersTest extends AbstractController
     }
 
     /**
+     * A page rendered for a visitor with a context of their own, such as a signed-in customer, keeps Magento's
+     * own headers.
+     *
+     * A browser keys its cache on the URL alone, so a copy it was allowed to keep would be replayed after that
+     * visitor signs out, showing their prices to whoever opens the page next on the same machine. The visitor's
+     * vary cookie is what tells Magento's page cache the page is not the default one.
+     *
+     * @magentoConfigFixture default/system/full_page_cache/caching_application 2
+     * @magentoConfigFixture default/system/full_page_cache/ttl 86400
+     * @magentoConfigFixture default/hryvinskyi_browser_cache_control/general/enabled 1
+     * @magentoConfigFixture default/hryvinskyi_browser_cache_control/general/browser_ttl 120
+     * @magentoConfigFixture default/hryvinskyi_browser_cache_control/general/must_revalidate 1
+     * @return void
+     */
+    public function testAPageRenderedForAVisitorsOwnContextKeepsMagentosOwnHeaders(): void
+    {
+        $_COOKIE[HttpResponse::COOKIE_VARY_STRING] = 'a-signed-in-customers-context';
+
+        try {
+            $this->dispatch(self::CACHEABLE_PAGE);
+        } finally {
+            unset($_COOKIE[HttpResponse::COOKIE_VARY_STRING]);
+        }
+
+        $this->assertStockPublicHeaders(
+            $this->dispatchedResponse(),
+            86400,
+            'A page rendered for a visitor with a context of their own was handed a browser lifetime, so the '
+            . 'browser would replay it after that visitor signs out.'
+        );
+    }
+
+    /**
      * A page Magento never declared cacheable is not handed a browser lifetime either.
      *
      * This module only ever relaxes what the browser is told about a page Magento was already willing to
@@ -635,7 +668,8 @@ class BrowserCacheHeadersTest extends AbstractController
             null,
             false,
             $declaredSharedTtl,
-            $this->currentStoreId()
+            $this->currentStoreId(),
+            null
         );
     }
 

@@ -12,7 +12,7 @@ namespace Hryvinskyi\BrowserCacheControl\Plugin;
 use Hryvinskyi\BrowserCacheControl\Api\BrowserCacheTtlApplierInterface;
 use Hryvinskyi\BrowserCacheControl\Api\PublicResponseStateInterface;
 use Hryvinskyi\BrowserCacheControl\Model\Http\CacheDirectivesWriter;
-use Hryvinskyi\BrowserCacheControl\Model\ResponseSnapshotFactory;
+use Hryvinskyi\BrowserCacheControl\Model\ResponseSnapshotReader;
 use Hryvinskyi\BrowserCacheControl\Model\WritePoint;
 use Magento\Framework\App\PageCache\Kernel;
 use Magento\Framework\App\Response\Http as HttpResponse;
@@ -36,17 +36,17 @@ use Magento\Framework\App\Response\Http as HttpResponse;
  *
  * A miss is answered with the same nothing it arrived as, untouched and unquestioned.
  */
-final class BuiltInCacheServed
+class BuiltInCacheServed
 {
     /**
      * @param PublicResponseStateInterface $publicResponseState Record of the declaration, for later moments
-     * @param ResponseSnapshotFactory $snapshotFactory Source of the facts the decision works from
+     * @param ResponseSnapshotReader $snapshotReader Source of the facts the decision works from
      * @param BrowserCacheTtlApplierInterface $applier Decision about what the browser may be told
      * @param CacheDirectivesWriter $writer Publisher of a decided answer
      */
     public function __construct(
         private readonly PublicResponseStateInterface $publicResponseState,
-        private readonly ResponseSnapshotFactory $snapshotFactory,
+        private readonly ResponseSnapshotReader $snapshotReader,
         private readonly BrowserCacheTtlApplierInterface $applier,
         private readonly CacheDirectivesWriter $writer
     ) {
@@ -68,7 +68,7 @@ final class BuiltInCacheServed
         $this->publicResponseState->declarePublic(null);
 
         $directives = $this->applier->resolve(
-            $this->snapshotFactory->create($result),
+            $this->snapshotReader->read($result),
             WritePoint::BuiltInDelivery
         );
 
